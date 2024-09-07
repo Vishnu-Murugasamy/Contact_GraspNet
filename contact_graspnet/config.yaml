@@ -52,7 +52,7 @@ DATA:
   num_point: 2048
   use_farthest_point: false
   train_and_test: false
-  num_test_scenes: 1000
+  num_test_scenes: 1
   intrinsics: 'realsense'
 LOSS:
   min_geom_loss_divisor: 1.0
@@ -157,7 +157,7 @@ MODEL:
   pred_grasps_adds_gt2pred: false
 OPTIMIZER:
   max_epoch: 16
-  batch_size: 3
+  batch_size: 1
   learning_rate: 0.001
   optimizer: adam
   momentum: 0.9

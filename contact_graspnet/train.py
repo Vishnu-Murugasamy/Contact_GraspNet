@@ -76,6 +76,7 @@ def train(global_config, log_dir):
         # contact_tensors = load_contact_grasps(contact_infos, global_config['DATA'])
         
         loss_ops = load_labels_and_losses(grasp_estimator, contact_infos, global_config)
+        print(type(loss_ops))
 
         ops.update(loss_ops)
         ops['train_op'] = build_train_op(ops['loss'], ops['step'], global_config)

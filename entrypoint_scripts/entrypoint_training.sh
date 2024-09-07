@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PYOPENGL_PLATFORM='egl'
+# export PYOPENGL_PLATFORM='egl'
 
-python contact_graspnet/train.py --ckpt_dir checkpoints/your_model_name \
-                                 --data_path /path/to/acronym/data
+python contact_graspnet/train.py --ckpt_dir checkpoints/sep_05_2024_15_42 \
+                                 --data_path acronym

@@ -25,7 +25,12 @@ class Object(object):
         :param filename: Mesh to load
         :param scale: Scaling factor
         """
-        self.mesh = trimesh.load(filename)
+        dir_name, file_name = os.path.split(filename)
+        parent_dir = os.path.dirname(dir_name)
+        new_path = os.path.join(parent_dir, file_name)
+
+        self.mesh = trimesh.load(new_path)
+
         self.scale = 1.0
 
         # print(filename)
