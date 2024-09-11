@@ -463,6 +463,9 @@ class PointCloudReader:
         self._pc_augm_config = pc_augm_config
         self._depth_augm_config = depth_augm_config
 
+        self.pointcloud_folder = os.path.join(self._root_folder, 'scene_pointclouds')
+        self.scene_data_folder = os.path.join(self._root_folder, 'scene_data')
+
         self._current_pc = None
         self._cache = {}
 
@@ -585,7 +588,7 @@ class PointCloudReader:
             mask = np.logical_and(mask, labels != l)
         return pc[mask]
     
-    def get_scene_batch(self, scene_idx=None, return_segmap=False, save=False):
+    def get_scene_batch(self, scene_idx=None, return_segmap=False, save=True):
         """
         Render a batch of scene point clouds
 
@@ -614,6 +617,21 @@ class PointCloudReader:
         for i in range(self._batch_size):            
             # 0.005s
             pc_cam, pc_normals, camera_pose, depth = self.render_random_scene(estimate_normals = self._estimate_normals)
+            ##############################
+            """
+            Load pointclouds from .npy according to scene_idx. The path to pointclouds is self._root_folder/scene_pointclouds/
+            The files have names like pointcloud_0001_0001.npy, pointcloud_0001_0002.npy, etc. {scene_idx}_{camera_idx}.npy
+            get the pointclouds for the current scene_idx and random camera_idx. get total of self._batch_size pointclouds.
+            The corresponding camera poses are stored in scene_0.hdf5 file, where 0 is the scene idx. The dataset ["camera_poses"] is a list of 4x4 camera poses.
+            """
+            pointcloud_file = os.path.join(self.pointcloud_folder, f'pointcloud_{scene_idx:06d}_{i:06d}.npy')
+            pc_cam = np.load(pointcloud_file)
+
+            # Load camera poses
+            scene_data_file = os.path.join(self.scene_data_folder, f'scene_{scene_idx}.npz')
+            scene_data = np.load(scene_data_file)
+            camera_pose = scene_data['camera_poses'][i]
+            ##############################
 
             if return_segmap:
                 segmap, _, obj_pcs = self._renderer.render_labels(depth, obj_paths, mesh_scales, render_pc=True)
@@ -630,7 +648,7 @@ class PointCloudReader:
             data = {'depth':depth, 'K':K, 'camera_pose':camera_pose, 'scene_idx':scene_idx}
             if return_segmap:
                 data.update(segmap=segmap)
-            np.savez('results/{}_acronym.npz'.format(scene_idx), data)
+            np.savez('results/{}_acronym.npz'.format(scene_idx), batch_data)
 
         if return_segmap:
             return batch_data, cam_poses, scene_idx, batch_segmap, batch_obj_pcs
