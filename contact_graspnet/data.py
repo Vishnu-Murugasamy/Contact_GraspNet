@@ -44,9 +44,9 @@ def load_scene_contacts(dataset_folder, test_split_only=False, num_test=None, sc
         try:
             npz = np.load(contact_path, allow_pickle=False)
             contact_info = {'scene_contact_points':npz['scene_contact_points'],
-                            'obj_paths':npz['obj_paths'],
-                            'obj_transforms':npz['obj_transforms'],
-                            'obj_scales':npz['obj_scales'],
+                            #'obj_paths':npz['obj_paths'],
+                            #'obj_transforms':npz['obj_transforms'],
+                            #'obj_scales':npz['obj_scales'],
                             'grasp_transforms':npz['grasp_transforms']}
             contact_infos.append(contact_info)
         except:
@@ -436,9 +436,9 @@ class PointCloudReader:
         estimate_normals = False,
         caching=True,
         use_uniform_quaternions=False,
-        scene_obj_scales=None,
-        scene_obj_paths=None,
-        scene_obj_transforms=None,
+        # scene_obj_scales=None,
+        # scene_obj_paths=None,
+        # scene_obj_transforms=None,
         num_train_samples=None,
         num_test_samples=None,
         use_farthest_point = False,
@@ -456,9 +456,9 @@ class PointCloudReader:
         self._num_test_samples = num_test_samples
         self._estimate_normals = estimate_normals
         self._use_farthest_point = use_farthest_point
-        self._scene_obj_scales = scene_obj_scales
-        self._scene_obj_paths = scene_obj_paths
-        self._scene_obj_transforms = scene_obj_transforms
+        # self._scene_obj_scales = scene_obj_scales
+        # self._scene_obj_paths = scene_obj_paths
+        # self._scene_obj_transforms = scene_obj_transforms
         self._distance_range = distance_range
         self._pc_augm_config = pc_augm_config
         self._depth_augm_config = depth_augm_config
@@ -588,7 +588,7 @@ class PointCloudReader:
             mask = np.logical_and(mask, labels != l)
         return pc[mask]
     
-    def get_scene_batch(self, scene_idx=None, return_segmap=False, save=True):
+    def get_scene_batch(self, scene_idx=None, return_segmap=False, save=False):
         """
         Render a batch of scene point clouds
 
@@ -607,55 +607,40 @@ class PointCloudReader:
         if scene_idx is None:
             scene_idx = np.random.randint(0,self._num_train_samples)
 
-        obj_paths = [os.path.join(self._root_folder, p) for p in self._scene_obj_paths[scene_idx]]
-        mesh_scales = self._scene_obj_scales[scene_idx]
-        obj_trafos = self._scene_obj_transforms[scene_idx]
+        # obj_paths = [os.path.join(self._root_folder, p) for p in self._scene_obj_paths[scene_idx]]
+        # mesh_scales = self._scene_obj_scales[scene_idx]
+        # obj_trafos = self._scene_obj_transforms[scene_idx]
 
-        self.change_scene(obj_paths, mesh_scales, obj_trafos, visualize=False)
+        # self.change_scene(obj_paths, mesh_scales, obj_trafos, visualize=False)
 
         batch_segmap, batch_obj_pcs = [], []
         for i in range(self._batch_size):            
             # 0.005s
-            pc_cam, pc_normals, camera_pose, depth = self.render_random_scene(estimate_normals = self._estimate_normals)
-            ##############################
-            """
-            Load pointclouds from .npy according to scene_idx. The path to pointclouds is self._root_folder/scene_pointclouds/
-            The files have names like pointcloud_0001_0001.npy, pointcloud_0001_0002.npy, etc. {scene_idx}_{camera_idx}.npy
-            get the pointclouds for the current scene_idx and random camera_idx. get total of self._batch_size pointclouds.
-            The corresponding camera poses are stored in scene_0.hdf5 file, where 0 is the scene idx. The dataset ["camera_poses"] is a list of 4x4 camera poses.
-            """
-            pointcloud_file = os.path.join(self.pointcloud_folder, f'pointcloud_{scene_idx:06d}_{i:06d}.npy')
-            pc_cam = np.load(pointcloud_file)
+            pc_cam, pc_normals, camera_pose = self.render_random_scene(estimate_normals = self._estimate_normals, scene_idx=scene_idx, batch_idx=i)
 
-            # Load camera poses
-            scene_data_file = os.path.join(self.scene_data_folder, f'scene_{scene_idx}.npz')
-            scene_data = np.load(scene_data_file)
-            camera_pose = scene_data['camera_poses'][i]
-            ##############################
-
-            if return_segmap:
-                segmap, _, obj_pcs = self._renderer.render_labels(depth, obj_paths, mesh_scales, render_pc=True)
-                batch_obj_pcs.append(obj_pcs)
-                batch_segmap.append(segmap)
+            # if return_segmap:
+            #     segmap, _, obj_pcs = self._renderer.render_labels(depth, obj_paths, mesh_scales, render_pc=True)
+            #     batch_obj_pcs.append(obj_pcs)
+            #     batch_segmap.append(segmap)
 
             batch_data[i,:,0:3] = pc_cam[:,:3]
             if self._estimate_normals:
                 batch_data[i,:,3:6] = pc_normals[:,:3]
             cam_poses[i,:,:] = camera_pose
             
-        if save:
-            K = np.array([[616.36529541,0,310.25881958 ],[0,616.20294189,236.59980774],[0,0,1]])
-            data = {'depth':depth, 'K':K, 'camera_pose':camera_pose, 'scene_idx':scene_idx}
-            if return_segmap:
-                data.update(segmap=segmap)
-            np.savez('results/{}_acronym.npz'.format(scene_idx), batch_data)
+        # if save:
+        #     K = np.array([[616.36529541,0,310.25881958 ],[0,616.20294189,236.59980774],[0,0,1]])
+        #     data = {'depth':depth, 'K':K, 'camera_pose':camera_pose, 'scene_idx':scene_idx}
+        #     if return_segmap:
+        #         data.update(segmap=segmap)
+        #     np.savez('results/{}_acronym.npz'.format(scene_idx), batch_data)
 
         if return_segmap:
             return batch_data, cam_poses, scene_idx, batch_segmap, batch_obj_pcs
         else:
             return batch_data, cam_poses, scene_idx
 
-    def render_random_scene(self, estimate_normals=False, camera_pose=None):
+    def render_random_scene(self, estimate_normals=False, camera_pose=None, scene_idx=None, batch_idx=None):
         """
         Renders scene depth map, transforms to regularized pointcloud and applies augmentations
 
@@ -666,24 +651,40 @@ class PointCloudReader:
         Returns:
             [pc, pc_normals, camera_pose, depth] -- [point cloud, point cloud normals, camera pose, depth]
         """
-        if camera_pose is None:
-            viewing_index = np.random.randint(0, high=len(self._cam_orientations))
-            camera_orientation = self._cam_orientations[viewing_index]
-            camera_pose = self.get_cam_pose(camera_orientation)
+        # if camera_pose is None:
+        #     viewing_index = np.random.randint(0, high=len(self._cam_orientations))
+        #     camera_orientation = self._cam_orientations[viewing_index]
+        #     camera_pose = self.get_cam_pose(camera_orientation)
 
-        in_camera_pose = copy.deepcopy(camera_pose)
+        # in_camera_pose = copy.deepcopy(camera_pose)
 
-        # 0.005 s
-        _, depth, _, camera_pose = self._renderer.render(in_camera_pose, render_pc=False)
-        depth = self._augment_depth(depth)
+        ##############################
+        """
+        Load pointclouds from .npy according to scene_idx. The path to pointclouds is self._root_folder/scene_pointclouds/
+        The files have names like pointcloud_0001_0001.npy, pointcloud_0001_0002.npy, etc. {scene_idx}_{camera_idx}.npy
+        get the pointclouds for the current scene_idx and random camera_idx. get total of self._batch_size pointclouds.
+        The corresponding camera poses are stored in scene_0.hdf5 file, where 0 is the scene idx. The dataset ["camera_poses"] is a list of 4x4 camera poses.
+        """
+        pointcloud_file = os.path.join(self.pointcloud_folder, f'pointcloud_{scene_idx:06d}_{batch_idx:06d}.npy')
+        pc = np.load(pointcloud_file)
+
+        # Load camera poses
+        scene_data_file = os.path.join(self.scene_data_folder, f'scene_{scene_idx}.npz')
+        scene_data = np.load(scene_data_file)
+        camera_pose = scene_data['camera_poses'][batch_idx]
+        ##############################
+
+        # # 0.005 s
+        # _, depth, _, camera_pose = self._renderer.render(in_camera_pose, render_pc=False)
+        # depth = self._augment_depth(depth)
         
-        pc = self._renderer._to_pointcloud(depth)
+        # pc = self._renderer._to_pointcloud(depth)
         pc = regularize_pc_point_count(pc, self._raw_num_points, use_farthest_point=self._use_farthest_point)
         pc = self._augment_pc(pc)
         
         pc_normals = estimate_normals_cam_from_pc(pc[:,:3], raw_num_points=self._raw_num_points) if estimate_normals else []
 
-        return pc, pc_normals, camera_pose, depth
+        return pc, pc_normals, camera_pose
 
     def change_object(self, cad_path, cad_scale):
         """

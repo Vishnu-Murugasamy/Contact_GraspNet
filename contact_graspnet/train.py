@@ -54,9 +54,9 @@ def train(global_config, log_dir):
         estimate_normals=global_config['DATA']['input_normals'],
         raw_num_points=global_config['DATA']['raw_num_points'],
         use_uniform_quaternions = global_config['DATA']['use_uniform_quaternions'],
-        scene_obj_scales = [c['obj_scales'] for c in contact_infos],
-        scene_obj_paths = [c['obj_paths'] for c in contact_infos],
-        scene_obj_transforms = [c['obj_transforms'] for c in contact_infos],
+        # scene_obj_scales = [c['obj_scales'] for c in contact_infos],
+        # scene_obj_paths = [c['obj_paths'] for c in contact_infos],
+        # scene_obj_transforms = [c['obj_transforms'] for c in contact_infos],
         num_train_samples = num_train_samples,
         num_test_samples = num_test_samples,
         use_farthest_point = global_config['DATA']['use_farthest_point'],
@@ -129,6 +129,9 @@ def train_one_epoch(sess, ops, summary_ops, file_writers, pcreader):
     for batch_idx in range(pcreader._num_train_samples):
 
         batch_data, cam_poses, scene_idx = pcreader.get_scene_batch(scene_idx=batch_idx)
+        print("\nbatch_data\n", batch_data.shape)
+        print("\ncam_poses\n", cam_poses.shape)
+        print("\nscene_idx\n", scene_idx)
         
         # OpenCV OpenGL conversion
         cam_poses, batch_data = center_pc_convert_cam(cam_poses, batch_data)
