@@ -1,5 +1,5 @@
 DATA:
-  scene_contacts_path: scene_contacts
+  scene_contacts_path: scene_data
   gripper_width: 0.08
   input_normals: false
   use_uniform_quaternions: False

@@ -210,6 +210,8 @@ def load_contact_grasps(contact_list, data_config):
     pos_approach_dirs = []
 
     for i,c in enumerate(contact_list):
+        print("scene_contact_points shape: ", c['scene_contact_points'].shape)
+        print("grasp_transforms shape: ", c['grasp_transforms'].shape)
         contact_directions_01 = c['scene_contact_points'][:,0,:] - c['scene_contact_points'][:,1,:]
         all_contact_points = c['scene_contact_points'].reshape(-1,3)
         all_finger_diffs = np.maximum(np.linalg.norm(contact_directions_01,axis=1), np.finfo(np.float32).eps)

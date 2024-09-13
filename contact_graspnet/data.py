@@ -614,9 +614,12 @@ class PointCloudReader:
         # self.change_scene(obj_paths, mesh_scales, obj_trafos, visualize=False)
 
         batch_segmap, batch_obj_pcs = [], []
+        random_samples = np.random.randint(0, 9, self._batch_size)
+        print("random_samples: ", random_samples)
         for i in range(self._batch_size):            
             # 0.005s
-            pc_cam, pc_normals, camera_pose = self.render_random_scene(estimate_normals = self._estimate_normals, scene_idx=scene_idx, batch_idx=i)
+            pc_cam, pc_normals, camera_pose = self.render_random_scene(estimate_normals = self._estimate_normals, scene_idx=scene_idx, 
+                                                                       batch_idx=random_samples[i])
 
             # if return_segmap:
             #     segmap, _, obj_pcs = self._renderer.render_labels(depth, obj_paths, mesh_scales, render_pc=True)
@@ -665,11 +668,13 @@ class PointCloudReader:
         get the pointclouds for the current scene_idx and random camera_idx. get total of self._batch_size pointclouds.
         The corresponding camera poses are stored in scene_0.hdf5 file, where 0 is the scene idx. The dataset ["camera_poses"] is a list of 4x4 camera poses.
         """
+        print("loading", f'pointcloud_{scene_idx:06d}_{batch_idx:06d}.npy')
         pointcloud_file = os.path.join(self.pointcloud_folder, f'pointcloud_{scene_idx:06d}_{batch_idx:06d}.npy')
         pc = np.load(pointcloud_file)
 
         # Load camera poses
-        scene_data_file = os.path.join(self.scene_data_folder, f'scene_{scene_idx}.npz')
+        print("loading", f'scene_{scene_idx:06d}.npz')
+        scene_data_file = os.path.join(self.scene_data_folder, f'scene_{scene_idx:06d}.npz')
         scene_data = np.load(scene_data_file)
         camera_pose = scene_data['camera_poses'][batch_idx]
         ##############################
