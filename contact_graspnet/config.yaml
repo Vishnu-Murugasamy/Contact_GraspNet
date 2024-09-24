@@ -1,5 +1,5 @@
 DATA:
-  scene_contacts_path: scene_contacts # scene_data
+  scene_contacts_path: scene_data # scene_contacts
   gripper_width: 0.08
   input_normals: false
   use_uniform_quaternions: False
@@ -52,7 +52,7 @@ DATA:
   num_point: 2048
   use_farthest_point: false
   train_and_test: false
-  num_test_scenes: 1
+  num_test_scenes: 100
   intrinsics: 'realsense'
 LOSS:
   min_geom_loss_divisor: 1.0
