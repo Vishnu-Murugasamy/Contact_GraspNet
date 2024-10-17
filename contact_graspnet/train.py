@@ -27,6 +27,20 @@ from summaries import build_summary_ops, build_file_writers
 from tf_train_ops import load_labels_and_losses, build_train_op
 from contact_grasp_estimator import GraspEstimator
 
+def count_trainable_parameters():
+    """
+    Prints the total number of trainable parameters in the model
+    """
+    total_parameters = 0
+    for variable in tf.trainable_variables():
+        shape = variable.get_shape()
+        variable_parameters = 1
+        for dim in shape:
+            variable_parameters *= dim.value
+        total_parameters += variable_parameters
+    print(f"Total number of trainable parameters: {total_parameters}")
+
+
 def train(global_config, log_dir):
     """
     Trains Contact-GraspNet
@@ -72,6 +86,8 @@ def train(global_config, log_dir):
         # Build the model
         grasp_estimator = GraspEstimator(global_config)
         ops = grasp_estimator.build_network()
+
+        count_trainable_parameters()
         
         # contact_tensors = load_contact_grasps(contact_infos, global_config['DATA'])
         
@@ -191,8 +207,8 @@ def eval_validation_scenes(sess, ops, summary_ops, file_writers, pcreader, max_e
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ckpt_dir', default='checkpoints/contact_graspnet', help='Checkpoint dir')
-    parser.add_argument('--data_path', type=str, default=None, help='Grasp data root dir')
+    parser.add_argument('--ckpt_dir', default='checkpoints/sep_25_2024_14_00', help='Checkpoint dir')
+    parser.add_argument('--data_path', type=str, default='acronym', help='Grasp data root dir')
     parser.add_argument('--max_epoch', type=int, default=None, help='Epochs to run')
     parser.add_argument('--batch_size', type=int, default=None, help='Batch Size during training')
     parser.add_argument('--arg_configs', nargs="*", type=str, default=[], help='overwrite config parameters')

@@ -1,0 +1,103 @@
+# Use the NVIDIA CUDA base image with CUDA 11.8 and cuDNN 8 on Ubuntu 22.04
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+# Update and install basic utilities
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common \
+    curl \
+    gnupg \
+    lsb-release \
+    locales \
+    build-essential \
+    git \
+    python3-pip \
+    python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the locale
+RUN locale-gen en_US en_US.UTF-8
+
+# Add the ROS 2 GPG key
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | apt-key add -
+
+# Add the ROS 2 apt repository
+RUN sh -c 'echo "deb http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2.list'
+
+# Install ROS 2 Humble
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-humble-desktop \
+    python3-colcon-common-extensions \
+    && rm -rf /var/lib/apt/lists/*
+
+# Source the ROS 2 setup script
+SHELL ["/bin/bash", "-c"]
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+
+# Install system dependencies for Python packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1-mesa-glx \
+    libgl1-mesa-dev \
+    libglu1-mesa \
+    libglu1-mesa-dev \
+    freeglut3-dev \
+    mesa-common-dev \
+    libosmesa6-dev \
+    libxrender1 \
+    libxtst6 \
+    libxi6 \
+    libxext6 \
+    libxfixes3 \
+    libfreetype6-dev \
+    libpng-dev \
+    libspatialindex-dev \
+    libboost-all-dev \
+    libfcl-dev \
+    python3-vtk9 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip
+RUN pip3 install --no-cache-dir --upgrade pip
+
+# Install TensorFlow GPU 2.13.0
+RUN pip3 install --no-cache-dir tensorflow==2.13.0
+
+# Install Cython (required for some packages)
+RUN pip3 install --no-cache-dir cython
+
+# Install additional Python packages
+RUN pip3 install --no-cache-dir \
+    PyQt5 \
+    opencv-python \
+    matplotlib \
+    mayavi \
+    trimesh \
+    scipy \
+    keras-applications \
+    keras-preprocessing \
+    chardet \
+    configobj \
+    decorator \
+    freetype-py \
+    idna \
+    imageio \
+    importlib-metadata \
+    networkx \
+    pyglet \
+    pyopengl \
+    pyrender \
+    rtree \
+    zipp \
+    python-fcl \
+    pyyaml
+
+# Expose ROS 2 default port
+EXPOSE 11311
+
+# Set the default command to bash
+CMD ["bash"]

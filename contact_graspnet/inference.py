@@ -19,6 +19,20 @@ from data import regularize_pc_point_count, depth2pc, load_available_input_data
 from contact_grasp_estimator import GraspEstimator
 from visualization_utils import visualize_grasps, show_image
 
+def count_trainable_parameters():
+    """
+    Prints the total number of trainable parameters in the model
+    """
+    total_parameters = 0
+    for variable in tf.trainable_variables():
+        shape = variable.get_shape()
+        variable_parameters = 1
+        for dim in shape:
+            variable_parameters *= dim#.value
+        total_parameters += variable_parameters
+    print(f"Total number of trainable parameters: {total_parameters}")
+
+
 def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=True, skip_border_objects=False, filter_grasps=True, segmap_id=None, z_range=[0.2,1.8], forward_passes=1):
     """
     Predict 6-DoF grasp distribution for given model and input data
@@ -38,6 +52,8 @@ def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=
     # Build the model
     grasp_estimator = GraspEstimator(global_config)
     grasp_estimator.build_network()
+
+    count_trainable_parameters()
 
     # Add ops to save and restore all the variables.
     saver = tf.train.Saver(save_relative_paths=True)
@@ -86,11 +102,11 @@ def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ckpt_dir', default='checkpoints/scene_test_2048_bs3_hor_sigma_001', help='Log dir [default: checkpoints/scene_test_2048_bs3_hor_sigma_001]')
+    parser.add_argument('--ckpt_dir', default='checkpoints/scene_test_2048_bs3_hor_sigma_001', help='Log dir [default: checkpoints/scene_test_2048_bs3_hor_sigma_001,sep_24_2024_16_00]')
     parser.add_argument('--np_path', default='test_data/7.npy', help='Input data: npz/npy file with keys either "depth" & camera matrix "K" or just point cloud "pc" in meters. Optionally, a 2D "segmap"')
     parser.add_argument('--png_path', default='', help='Input data: depth map png in meters')
     parser.add_argument('--K', default=None, help='Flat Camera Matrix, pass as "[fx, 0, cx, 0, fy, cy, 0, 0 ,1]"')
-    parser.add_argument('--z_range', default=[0.2,1.8], help='Z value threshold to crop the input point cloud')
+    parser.add_argument('--z_range', default=[0.001,1.8], help='Z value threshold to crop the input point cloud')
     parser.add_argument('--local_regions', action='store_true', default=False, help='Crop 3D local regions around given segments.')
     parser.add_argument('--filter_grasps', action='store_true', default=False,  help='Filter grasp contacts according to segmap.')
     parser.add_argument('--skip_border_objects', action='store_true', default=False,  help='When extracting local_regions, ignore segments at depth map boundary.')

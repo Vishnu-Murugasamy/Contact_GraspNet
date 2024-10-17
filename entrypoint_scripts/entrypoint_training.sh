@@ -2,5 +2,5 @@
 
 # export PYOPENGL_PLATFORM='egl'
 
-python contact_graspnet/train.py --ckpt_dir checkpoints/sep_05_2024_15_42 \
+python contact_graspnet/train.py --ckpt_dir checkpoints/sep_25_2024_14_00 \
                                  --data_path acronym

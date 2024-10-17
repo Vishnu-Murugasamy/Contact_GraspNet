@@ -210,8 +210,6 @@ def load_contact_grasps(contact_list, data_config):
     pos_approach_dirs = []
 
     for i,c in enumerate(contact_list):
-        print("scene_contact_points shape: ", c['scene_contact_points'].shape)
-        print("grasp_transforms shape: ", c['grasp_transforms'].shape)
         contact_directions_01 = c['scene_contact_points'][:,0,:] - c['scene_contact_points'][:,1,:]
         all_contact_points = c['scene_contact_points'].reshape(-1,3)
         all_finger_diffs = np.maximum(np.linalg.norm(contact_directions_01,axis=1), np.finfo(np.float32).eps)
@@ -247,6 +245,11 @@ def load_contact_grasps(contact_list, data_config):
 
     device = "/cpu:0" if 'to_gpu' in data_config['labels'] and not data_config['labels']['to_gpu'] else "/gpu:0"
     print("grasp label device: ", device)
+
+    print('pos_contact_points', len(pos_contact_points))
+    print('pos_contact_dirs', len(pos_contact_dirs))
+    print('pos_finger_diffs', len(pos_finger_diffs))
+    print('pos_approach_dirs', len(pos_approach_dirs))
 
     with tf.device(device):
         tf_scene_idcs = tf.constant(np.arange(0,len(pos_contact_points)), tf.int32)

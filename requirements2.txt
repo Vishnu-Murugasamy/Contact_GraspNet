@@ -1,0 +1,57 @@
+
+# PyQt5==5.9.2
+# opencv-python==4.5.3.56 
+opencv-python
+# matplotlib==3.3
+matplotlib
+mayavi
+trimesh
+scipy
+keras-applications
+keras-preprocessing
+vtk
+#PyQt5==5.13
+absl-py
+astor
+astunparse
+cachetools
+chardet
+configobj
+decorator
+freetype-py
+gast
+google-auth
+google-auth-oauthlib
+google-pasta
+grpcio
+h5py
+idna
+imageio
+importlib-metadata
+markdown
+networkx
+numpy
+oauthlib
+opt-einsum
+pillow
+protobuf
+pyasn1
+pyasn1-modules
+pyglet
+pyopengl
+pyrender
+requests
+requests-oauthlib
+rsa
+rtree
+termcolor
+tqdm
+urllib3
+werkzeug
+wrapt
+zipp
+python-fcl
+pyyaml
+# pyyaml==5.3.1
+
+# pyyaml==5.3.1

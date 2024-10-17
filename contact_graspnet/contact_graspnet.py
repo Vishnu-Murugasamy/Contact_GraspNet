@@ -118,50 +118,78 @@ def get_model(point_cloud, is_training, global_config, bn_decay=None):
     end_points = {}
     l0_xyz = tf.slice(point_cloud, [0,0,0], [-1,-1,3])
     l0_points = tf.slice(point_cloud, [0,0,3], [-1,-1,3]) if input_normals else None 
+    print(f"Layer: l0_xyz, Shape: {l0_xyz.get_shape()}")
+    print(f"Layer: l0_points (with normals), Shape: {l0_points.get_shape()}") if input_normals else None
+
 
     # Set abstraction layers
     l1_xyz, l1_points = pointnet_sa_module_msg(l0_xyz, l0_points, npoint_0, radius_list_0, nsample_list_0, mlp_list_0, is_training, bn_decay, scope='layer1')
+    print(f"Layer: l1_xyz, Shape: {l1_xyz.get_shape()}, l1_points, Shape: {l1_points.get_shape()}")    
     l2_xyz, l2_points = pointnet_sa_module_msg(l1_xyz, l1_points, npoint_1, radius_list_1, nsample_list_1,mlp_list_1, is_training, bn_decay, scope='layer2')
+    print(f"Layer: l2_xyz, Shape: {l2_xyz.get_shape()}, l2_points, Shape: {l2_points.get_shape()}")    
 
     if 'asymmetric_model' in model_config and model_config['asymmetric_model']:
         l3_xyz, l3_points = pointnet_sa_module_msg(l2_xyz, l2_points, npoint_2, radius_list_2, nsample_list_2,mlp_list_2, is_training, bn_decay, scope='layer3')
+        print(f"Layer: l3_xyz, Shape: {l3_xyz.get_shape()}, l3_points, Shape: {l3_points.get_shape()}")        
         l4_xyz, l4_points, _ = pointnet_sa_module(l3_xyz, l3_points, npoint=None, radius=None, nsample=None, mlp=model_config['pointnet_sa_module']['mlp'], mlp2=None, group_all=model_config['pointnet_sa_module']['group_all'], is_training=is_training, bn_decay=bn_decay, scope='layer4')
+        print(f"Layer: l4_xyz, Shape: {l4_xyz.get_shape()}, l4_points, Shape: {l4_points.get_shape()}")        
 
         # Feature Propagation layers
         l3_points = pointnet_fp_module(l3_xyz, l4_xyz, l3_points, l4_points, fp_mlp_0, is_training, bn_decay, scope='fa_layer1')
+        print(f"Layer: l3_points (after FP), Shape: {l3_points.get_shape()}")
         l2_points = pointnet_fp_module(l2_xyz, l3_xyz, l2_points, l3_points, fp_mlp_1, is_training, bn_decay, scope='fa_layer2')
+        print(f"Layer: l2_points (after FP), Shape: {l2_points.get_shape()}")
         l1_points = pointnet_fp_module(l1_xyz, l2_xyz, l1_points, l2_points, fp_mlp_2, is_training, bn_decay, scope='fa_layer3')
+        print(f"Layer: l1_points (after FP), Shape: {l1_points.get_shape()}")
 
         l0_points = l1_points
+        print(f"Layer: l0_points (after FP), Shape: {l0_points.get_shape()}")
         pred_points = l1_xyz
+        print(f"Layer: pred_points, Shape: {pred_points.get_shape()}")
     else:
         l3_xyz, l3_points, _ = pointnet_sa_module(l2_xyz, l2_points, npoint=None, radius=None, nsample=None, mlp=model_config['pointnet_sa_module']['mlp'], mlp2=None, group_all=model_config['pointnet_sa_module']['group_all'], is_training=is_training, bn_decay=bn_decay, scope='layer3')
+        print(f"Layer: l3_xyz, Shape: {l3_xyz.get_shape()}, l3_points, Shape: {l3_points.get_shape()}")        
 
         # Feature Propagation layers
         l2_points = pointnet_fp_module(l2_xyz, l3_xyz, l2_points, l3_points, fp_mlp_0, is_training, bn_decay, scope='fa_layer1')
+        print(f"Layer: l2_points (after FP), Shape: {l2_points.get_shape()}")
         l1_points = pointnet_fp_module(l1_xyz, l2_xyz, l1_points, l2_points, fp_mlp_1, is_training, bn_decay, scope='fa_layer2')
+        print(f"Layer: l1_points (after FP), Shape: {l1_points.get_shape()}")
         l0_points = tf.concat([l0_xyz, l0_points],axis=-1) if input_normals else l0_xyz 
         l0_points = pointnet_fp_module(l0_xyz, l1_xyz, l0_points, l1_points, fp_mlp_2, is_training, bn_decay, scope='fa_layer3')
+        print(f"Layer: l0_points (after FP), Shape: {l0_points.get_shape()}")        
         pred_points = l0_xyz
+        print(f"Layer: pred_points, Shape: {pred_points.get_shape()}")
 
     if joint_heads:
         head = tf_util.conv1d(l0_points, 128, 1, padding='VALID', bn=True, is_training=is_training, scope='fc1', bn_decay=bn_decay)
+        print(f"Layer: head (joint head fc1), Shape: {head.get_shape()}")        
         head = tf_util.dropout(head, keep_prob=0.7, is_training=is_training, scope='dp1')
+        print(f"Layer: head (joint head dp1), Shape: {head.get_shape()}")
         head = tf_util.conv1d(head, 4, 1, padding='VALID', activation_fn=None, scope='fc2')
+        print(f"Layer: head (joint head fc2), Shape: {head.get_shape()}")
         grasp_dir_head = tf.slice(head, [0,0,0], [-1,-1,3])
+        print(f"Layer: grasp_dir_head (joint head), Shape: {grasp_dir_head.get_shape()}")
         grasp_dir_head = tf.math.l2_normalize(grasp_dir_head, axis=2)
         binary_seg_head = tf.slice(head, [0,0,3], [-1,-1,1])
+        print(f"Layer: binary_seg_head (joint head), Shape: {binary_seg_head.get_shape()}")
     else:
         # Head for grasp direction
         grasp_dir_head = tf_util.conv1d(l0_points, 128, 1, padding='VALID', bn=True, is_training=is_training, scope='fc1', bn_decay=bn_decay)
+        print(f"Layer: grasp_dir_head (fc1), Shape: {grasp_dir_head.get_shape()}")        
         grasp_dir_head = tf_util.dropout(grasp_dir_head, keep_prob=0.7, is_training=is_training, scope='dp1')
+        print(f"Layer: grasp_dir_head (dp1), Shape: {grasp_dir_head.get_shape()}")
         grasp_dir_head = tf_util.conv1d(grasp_dir_head, 3, 1, padding='VALID', activation_fn=None, scope='fc3')
+        print(f"Layer: grasp_dir_head (fc3), Shape: {grasp_dir_head.get_shape()}")
         grasp_dir_head_normed = tf.math.l2_normalize(grasp_dir_head, axis=2)
 
         # Head for grasp approach
         approach_dir_head = tf_util.conv1d(l0_points, 128, 1, padding='VALID', bn=True, is_training=is_training, scope='fc1_app', bn_decay=bn_decay)
+        print(f"Layer: approach_dir_head (fc1_app), Shape: {approach_dir_head.get_shape()}")        
         approach_dir_head = tf_util.dropout(approach_dir_head, keep_prob=0.7, is_training=is_training, scope='dp1_app')
+        print(f"Layer: approach_dir_head (dp1_app), Shape: {approach_dir_head.get_shape()}")
         approach_dir_head = tf_util.conv1d(approach_dir_head, 3, 1, padding='VALID', activation_fn=None, scope='fc3_app')
+        print(f"Layer: approach_dir_head (fc3_app), Shape: {approach_dir_head.get_shape()}")
         approach_dir_head_orthog = tf.math.l2_normalize(approach_dir_head - tf.reduce_sum(tf.multiply(grasp_dir_head_normed, approach_dir_head), axis=2, keepdims=True)*grasp_dir_head_normed, axis=2)
         
         # Head for grasp width
@@ -169,16 +197,24 @@ def get_model(point_cloud, is_training, global_config, bn_decay=None):
             grasp_offset_head = tf.norm(grasp_dir_head, axis=2, keepdims=True)
         elif model_config['bin_offsets']:
             grasp_offset_head = tf_util.conv1d(l0_points, 128, 1, padding='VALID', bn=True, is_training=is_training, scope='fc1_off', bn_decay=bn_decay)
+            print(f"Layer: grasp_offset_head (fc1_off), Shape: {grasp_offset_head.get_shape()}")
             grasp_offset_head = tf_util.conv1d(grasp_offset_head, len(offset_bins)-1, 1, padding='VALID', activation_fn=None, scope='fc2_off')
+            print(f"Layer: grasp_offset_head (fc2_off), Shape: {grasp_offset_head.get_shape()}")
         else:
             grasp_offset_head = tf_util.conv1d(l0_points, 128, 1, padding='VALID', bn=True, is_training=is_training, scope='fc1_off', bn_decay=bn_decay)
+            print(f"Layer: grasp_offset_head (fc1_off), Shape: {grasp_offset_head.get_shape()}")
             grasp_offset_head = tf_util.dropout(grasp_offset_head, keep_prob=0.7, is_training=is_training, scope='dp1_off')
+            print(f"Layer: grasp_offset_head (dp1_off), Shape: {grasp_offset_head.get_shape()}")
             grasp_offset_head = tf_util.conv1d(grasp_offset_head, 1, 1, padding='VALID', activation_fn=None, scope='fc2_off')
+            print(f"Layer: grasp_offset_head (fc2_off), Shape: {grasp_offset_head.get_shape()}")
 
         # Head for contact points
         binary_seg_head = tf_util.conv1d(l0_points, 128, 1, padding='VALID', bn=True, is_training=is_training, scope='fc1_seg', bn_decay=bn_decay)
+        print(f"Layer: binary_seg_head (fc1_seg), Shape: {binary_seg_head.get_shape()}")
         binary_seg_head = tf_util.dropout(binary_seg_head, keep_prob=0.5, is_training=is_training, scope='dp1_seg')
+        print(f"Layer: binary_seg_head (dp1_seg), Shape: {binary_seg_head.get_shape()}")
         binary_seg_head = tf_util.conv1d(binary_seg_head, 1, 1, padding='VALID', activation_fn=None, scope='fc2_seg')
+        print(f"Layer: binary_seg_head (fc2_seg), Shape: {binary_seg_head.get_shape()}")
 
     end_points['grasp_dir_head'] = grasp_dir_head_normed
     end_points['binary_seg_head'] = binary_seg_head

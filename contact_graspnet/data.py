@@ -19,6 +19,9 @@ from scipy.spatial import cKDTree
 import provider
 from scene_renderer import SceneRenderer
 
+def extract_number(filename):
+    return int(filename.split('_')[-1].split('.')[0])
+
 def load_scene_contacts(dataset_folder, test_split_only=False, num_test=None, scene_contacts_path='scene_contacts_new'):
     """
     Load contact grasp annotations from acronym scenes 
@@ -35,7 +38,7 @@ def load_scene_contacts(dataset_folder, test_split_only=False, num_test=None, sc
         list(dicts) -- list of scene annotations dicts with object paths and transforms and grasp contacts and transforms.
     """
     
-    scene_contact_paths = sorted(glob.glob(os.path.join(dataset_folder, scene_contacts_path, '*')))
+    scene_contact_paths = sorted(glob.glob(os.path.join(dataset_folder, scene_contacts_path, '*')), key=extract_number)
     if test_split_only:
         scene_contact_paths = scene_contact_paths[-num_test:]
     contact_infos = []
@@ -51,6 +54,7 @@ def load_scene_contacts(dataset_folder, test_split_only=False, num_test=None, sc
             contact_infos.append(contact_info)
         except:
             print('corrupt, ignoring..')
+    print('Loaded {} scene contacts'.format(len(contact_infos)))
     return contact_infos
 
 def preprocess_pc_for_inference(input_pc, num_point, pc_mean=None, return_mean=False, use_farthest_point=False, convert_to_internal_coords=False):
@@ -347,8 +351,8 @@ def load_available_input_data(p, K=None):
     else:
         raise ValueError('{} is neither png nor npz/npy file'.format(p))
     
-    # return segmap, rgb, depth, cam_K, pc_full, pc_colors
-    return segmap, rgb, depth, None, pc_full, pc_colors
+    return segmap, rgb, depth, cam_K, pc_full, pc_colors
+    # return segmap, rgb, depth, None, pc_full, pc_colors
 
 def load_graspnet_data(rgb_image_path):
     

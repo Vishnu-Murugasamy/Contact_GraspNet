@@ -58,6 +58,10 @@ class GraspEstimator:
         # Get model
         end_points = self._model_func.get_model(self.placeholders['pointclouds_pl'], self.placeholders['is_training_pl'], global_config, bn_decay=bn_decay)
 
+        # Print the structure of the model
+        for key, value in end_points.items():
+            print(f"Layer: {key}, Shape: {value.get_shape()}")
+
         tf_bin_vals = self._model_func.get_bin_vals(global_config)
         offset_bin_pred_vals = tf.gather_nd(tf_bin_vals, tf.expand_dims(tf.argmax(end_points['grasp_offset_head'], axis=2), axis=2)) if global_config['MODEL']['bin_offsets'] else end_points['grasp_offset_pred'][:,:,0]
 
@@ -190,6 +194,11 @@ class GraspEstimator:
 
         # Run model inference
         pred_grasps_cam, pred_scores, pred_points, offset_pred = sess.run(self.inference_ops, feed_dict=feed_dict)
+        # print('pred_grasps_cam shape', pred_grasps_cam.shape)
+        # print('pred_scores info', np.max(pred_scores), np.min(pred_scores), np.mean(pred_scores))
+        # print('pred_points shape', pred_points.shape)
+        # print('offset_pred shape', offset_pred.shape)
+        print('first thresh', self._contact_grasp_cfg['TEST']['first_thres'])
 
         pred_grasps_cam = pred_grasps_cam.reshape(-1, *pred_grasps_cam.shape[-2:])
         pred_points = pred_points.reshape(-1, pred_points.shape[-1])

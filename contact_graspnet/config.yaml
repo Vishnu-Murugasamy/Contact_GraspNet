@@ -52,7 +52,7 @@ DATA:
   num_point: 2048
   use_farthest_point: false
   train_and_test: false
-  num_test_scenes: 100
+  num_test_scenes: 1
   intrinsics: 'realsense'
 LOSS:
   min_geom_loss_divisor: 1.0
