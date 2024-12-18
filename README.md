@@ -1,5 +1,3 @@
-<!-- added to git-ce.rwth-aachen.de -->
-
 # Contact-GraspNet  
 
 ### Contact-GraspNet: Efficient 6-DoF Grasp Generation in Cluttered Scenes   
