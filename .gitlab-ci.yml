@@ -10,8 +10,6 @@ docker:build:
     - hades
   stage: build
   script:
-    - chmod +x setup.sh
-    - ./setup.sh
     - docker build -t registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/deep-learning/grasping-for-gg-cnn/contact-graspnet:$CI_COMMIT_BRANCH .
 
 git-ce:push:
