@@ -7,7 +7,7 @@ RUN apt-get update && \
     # apt install libopencv-dev python3-opencv -y && \
     rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt /tmp/requirements.txt
-RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+COPY . /contact_graspnet
+RUN pip3 install --no-cache-dir -r /contact_graspnet/requirements.txt
 
 # ENV QT_DEBUG_PLUGINS=1
