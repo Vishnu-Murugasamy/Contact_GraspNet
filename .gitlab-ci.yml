@@ -1,0 +1,25 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+stages:
+  - build
+  - registry_push
+
+docker:build:
+  tags:
+    - hades
+  stage: build
+  script:
+    - chmod +x setup.sh
+    - ./setup.sh
+    - docker build -t registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/deep-learning/grasping-for-gg-cnn/contact-graspnet:$CI_COMMIT_BRANCH .
+
+git-ce:push:
+  tags:
+    - hades
+  stage: registry_push
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker push registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/deep-learning/grasping-for-gg-cnn/contact-graspnet:$CI_COMMIT_BRANCH
+    - docker tag registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/deep-learning/grasping-for-gg-cnn/contact-graspnet:$CI_COMMIT_BRANCH registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/deep-learning/grasping-for-gg-cnn/contact-graspnet:latest
+    - docker push registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/deep-learning/grasping-for-gg-cnn/contact-graspnet:latest
