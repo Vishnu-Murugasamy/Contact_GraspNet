@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Define the paths to the numpy files
-NUMPY_FILE="/root/ws/kinova_repos/kinova-transfer/rgbd_image.npz"
-PREDICTIONS_FILE="/root/ws/kinova_repos/kinova-transfer/predictions_rgbd_image.npz"
+NUMPY_FILE="/contact_transfer/output_gsa/rgbd_image_new.npz"
+PREDICTIONS_FILE="/contact_transfer/output_grasp/predictions_rgbd_image_new.npz"
+
 
 # Define the line of code to execute
 PROCESS_COMMAND="python contact_graspnet/inference.py --np_path=$NUMPY_FILE"
@@ -26,7 +27,7 @@ do
     echo "File $NUMPY_FILE found. Processing..."
 
     # Execute the line of code
-    $PROCESS_COMMAND
+    $PROCESS_COMMAND --local_regions --filter_grasps
 
     # Check if the command was successful
     if [ $? -eq 0 ]; then

@@ -2,12 +2,12 @@
 # PyQt5==5.9.2
 opencv-python==4.5.3.56 
 matplotlib==3.3
-mayavi
+mayavi==4.7.4
 trimesh
 scipy
 keras-applications
 keras-preprocessing
-vtk
+vtk==9.0.1
 PyQt5==5.13
 absl-py
 astor

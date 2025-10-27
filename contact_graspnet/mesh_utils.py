@@ -81,10 +81,10 @@ class PandaGripper(object):
             num_contact_points_per_finger {int} -- contact points per finger (default: {10})
             root_folder {str} -- base folder for model files (default: {''})
         """
-        self.joint_limits = [0.0, 0.04]
+        self.joint_limits = [0.0, 0.07]
         self.root_folder = root_folder
         
-        self.default_pregrasp_configuration = 0.04
+        self.default_pregrasp_configuration = 0.07
         if q is None:
             q = self.default_pregrasp_configuration
 

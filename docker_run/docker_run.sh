@@ -21,6 +21,9 @@ docker run \
 	-v "$HOME/.Xauthority:/root/.Xauthority:rw" \
     -v /dev:/dev \
     -v "$REPO_DIR:/contact_graspnet:rw" \
+    -v /media/hiwi/0012BF1212BF0C221/vishnu_murugasamy/AI-Agent/ai-agent-ros/overlay_ws/src/kairos_agent/scripts/transfer:/contact_transfer:rw \
     -w /contact_graspnet \
-    tensorflow-gpu-contact-graspnet:latest \
+    registry.git-ce.rwth-aachen.de/wzl-mq-ms/docker-ros/deep-learning/grasping-for-gg-cnn/contact-graspnet:latest
     bash
+    
+        #tensorflow-gpu-contact-graspnet:latest \ pip install vtk==9.0.1 mayavi==4.7.4

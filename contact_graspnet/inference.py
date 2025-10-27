@@ -85,18 +85,18 @@ def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=
                                                                                     skip_border_objects=skip_border_objects, z_range=z_range)
 
         print('Generating Grasps...')
-        pred_grasps_cam, scores, contact_pts, _ = grasp_estimator.predict_scene_grasps(sess, pc_full, pc_segments=pc_segments, 
+        pred_grasps_cam, scores, contact_pts, grasp_widths = grasp_estimator.predict_scene_grasps(sess, pc_full, pc_segments=pc_segments, 
                                                                                           local_regions=local_regions, filter_grasps=filter_grasps, forward_passes=forward_passes)  
 
         # Save results
-        # np.savez('results/predictions_{}'.format(os.path.basename(p.replace('png','npz').replace('npy','npz'))), 
-        #           pred_grasps_cam=pred_grasps_cam, scores=scores, contact_pts=contact_pts)
-        np.savez('/root/ws/kinova_repos/kinova-transfer/predictions_{}'.format(os.path.basename(p.replace('png','npz').replace('npy','npz'))), 
+        #np.savez('results/predictions_{}'.format(os.path.basename(p.replace('png','npz').replace('npy','npz'))), 
+                  #pred_grasps_cam=pred_grasps_cam, scores=scores, contact_pts=contact_pts)
+        np.savez('/contact_transfer/output_grasp/predictions_{}'.format(os.path.basename(p.replace('png','npz').replace('npy','npz'))), 
                   pred_grasps_cam=pred_grasps_cam, scores=scores, contact_pts=contact_pts)
 
         # Visualize results          
-        # show_image(rgb, segmap)
-        visualize_grasps(pc_full, pred_grasps_cam, scores, plot_opencv_cam=False, pc_colors=pc_colors)
+        show_image(rgb, segmap)
+        visualize_grasps(pc_full, pred_grasps_cam, scores, plot_opencv_cam=False, pc_colors=pc_colors,gripper_openings=grasp_widths)
         
     if not glob.glob(input_paths):
         print('No files found: ', input_paths)
